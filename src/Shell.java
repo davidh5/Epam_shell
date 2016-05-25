@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -45,7 +46,11 @@ public class Shell {
 				if (commandParts.length != 1) {
 					System.out.println("'Dir' command should be run without any parameters");
 				} else {
-					showDirectoryContent(currentDirectory);
+					try {
+						showDirectoryContent(currentDirectory);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 				break;
 				
@@ -89,11 +94,18 @@ public class Shell {
 	
 	/**
 	 * @param directory Directory which content should be displayed
+	 *
 	 */
-	public static void showDirectoryContent(File directory) {
+	public static void showDirectoryContent(File directory) throws IOException {
 		
 		File[] files = directory.listFiles();
+		try {
+		System.out.println("Content of: " + directory.getCanonicalPath());
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 		
+			
 		for (File f : files) {
 			if (f.isDirectory()) {
 				System.out.println("DIR \t" + f.getName());
