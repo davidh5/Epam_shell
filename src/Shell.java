@@ -8,6 +8,7 @@ import java.util.Scanner;
 public class Shell {
 	
 	private static final String EXIT_COMMAND = "exit";
+	private static final String DIR_COMMAND = "dir";
 	private static final String PROMPT_COMMAND = "prompt";
 	private static final String PROMPT_RESET_COMMAND = "reset";
 	private static final String PROMPT_CWD_COMMAND = "$cwd";
@@ -15,6 +16,8 @@ public class Shell {
 
 	public static void main(String[] args) {
 		Prompt prompt = new Prompt("$");
+		File currentDirectory = new File(".");
+		
 		
 		String text = "";
 		String[] commandParts;
@@ -34,27 +37,39 @@ public class Shell {
 					System.out.println("'Prompt' command parameters are wrong");
 					break;
 				} else {
-					promptChange(prompt, commandParts[1]);
+					promptChange(prompt, commandParts[1], currentDirectory);
 					break;
 				}
+			
+			case DIR_COMMAND:
+				if (commandParts.length != 1) {
+					System.out.println("'Dir' command should be run without any parameters");
+				} else {
+					showDirectoryContent(currentDirectory);
+				}
+				break;
 				
 			case EXIT_COMMAND:
 				System.out.println("Shell is closing!");
 				System.exit(0);
 				break;
 				
+			
+				
 			default:
 				System.out.println(commandParts[0]+":unknown command");
 				break;
 			}
 		}
+		consoleReader.close();
 	}
 	
 	/**
 	 * @param prompt Prompt object which defines the prompt sign in shell
 	 * @param parameter Second part of typed command
+	 * @param directory Current working directory, it is used to show current directory path in prompt
 	 */
-	public static void promptChange(Prompt prompt, String parameter) {
+	public static void promptChange(Prompt prompt, String parameter, File directory) {
 		
 		switch (parameter) {
 		
@@ -63,13 +78,29 @@ public class Shell {
 			break;
 		
 		case PROMPT_CWD_COMMAND:
-			File fileToObtainPath = new File("");
-			prompt.setPromptSign(fileToObtainPath.getAbsolutePath());
+			prompt.setPromptSign(directory.getAbsolutePath());
 			break;
 		
 		default:
 			prompt.setPromptSign(parameter);
 			break;
 		}
+	}
+	
+	/**
+	 * @param directory Directory which content should be displayed
+	 */
+	public static void showDirectoryContent(File directory) {
+		
+		File[] files = directory.listFiles();
+		
+		for (File f : files) {
+			if (f.isDirectory()) {
+				System.out.println("DIR \t" + f.getName());
+			} else {
+				System.out.println("FILE \t" + f.getName());
+			}
+		}
+		
 	}
 }
