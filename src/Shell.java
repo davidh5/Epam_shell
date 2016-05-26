@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- * @author Dawid
- *
+ * Main class of the Epam shell exercise
+ * @author Dawid Holko
  */
 public class Shell {
 	
@@ -17,28 +17,20 @@ public class Shell {
 	private static final String PROMPT_RESET_COMMAND = "reset";
 	private static final String PROMPT_CWD_COMMAND = "$cwd";
 	private static final String PROMPT_DEFUALT_SIGN = "$";
-	
-//	private static File currentDirectory;
 
 	public static void main(String[] args) {
 		Prompt prompt = new Prompt("$");
-//		currentDirectory = new File(".");
 		Directory currentDirectory = new Directory(new File("."));
-		
 		
 		String text = "";
 		String[] commandParts;
 		Scanner consoleReader = new Scanner(System.in);
 		
 		while (!(text.equals(EXIT_COMMAND))) {
-			
-			System.out.print(prompt.getPromptSign()+" ");
-			
+			System.out.print("[MyShell] "+prompt.getPromptSign()+"> ");
 			text = consoleReader.nextLine();
 			commandParts = text.split(" ");
-			
 			switch (commandParts[0]) {
-			
 			case PROMPT_COMMAND:
 				if (commandParts.length == 2) {
 					promptChange(prompt, commandParts[1], currentDirectory);
@@ -71,14 +63,14 @@ public class Shell {
 				break;
 				
 			case CD_COMMAND:
-				if (commandParts.length > 2) {
+				if (commandParts.length == 2) {
+					changeDirectory(prompt, currentDirectory, commandParts[1]);
+				} else if (commandParts.length > 2) {
 					String directoryToSwitch = "";
 					for (int i = 1; i < commandParts.length; i++) {
 						directoryToSwitch += commandParts[i]+" ";
 					}
 					changeDirectory(prompt, currentDirectory, directoryToSwitch);
-				} else if (commandParts.length == 2) {
-					changeDirectory(prompt, currentDirectory, commandParts[1]);
 				} else {
 					System.out.println("'CD' command should be run with some parameter");
 				}
@@ -98,14 +90,14 @@ public class Shell {
 	}
 	
 	/**
+	 * This function is used to change prompt in shell by using 'prompt' command
 	 * @param prompt Prompt object which defines the prompt sign in shell
-	 * @param parameter Second part of typed command
+	 * @param parameter The part after prompt command of entered string
 	 * @param directory Current working directory, it is used to show current directory path in prompt
 	 */
-	private static void promptChange(Prompt prompt, String parameter, Directory directory) {
+	public static void promptChange(Prompt prompt, String parameter, Directory directory) {
 		
 		switch (parameter) {
-		
 		case PROMPT_RESET_COMMAND:
 			prompt.setPromptSetToShowDirectory(false);
 			prompt.setPromptSign(PROMPT_DEFUALT_SIGN);
@@ -128,10 +120,10 @@ public class Shell {
 	}
 	
 	/**
+	 * This function is used to handle 'dir' command in shell. It shows content of current working directory
 	 * @param directory Directory which content should be displayed
-	 *
 	 */
-	private static void showDirectoryContent(File directory) {
+	public static void showDirectoryContent(File directory) {
 		
 		File[] files = directory.listFiles();
 		
@@ -148,14 +140,14 @@ public class Shell {
 				System.out.println("FILE \t" + f.getName());
 			}
 		}
-		
 	}
 	
 	/**
+	 * This function is used to handle 'tree' command in shell. It shows tree structure of current working directory and its subdirectories
 	 * @param directory Directory which content should be displayed
 	 * @param indent Variable describing in which depth we are in directories tree
 	 */
-	private static void showDirectoryTree(File directory, int indent) {
+	public static void showDirectoryTree(File directory, int indent) {
 		if (indent == 0) {
 			try {
 				String pathOfCurrentDirectory = directory.getCanonicalPath();
@@ -173,18 +165,27 @@ public class Shell {
 				showDirectoryTree(f, indent+1);
 			}
 		}
-		
 	}
 	
-	private static void getIndentString(int indent) {
+	/**
+	 * This function is used to show '-' characters as indentation of subdirectories
+	 * @param indent Variable describing in which depth we are in directories tree. In this case - it describes  how many '-' characters should be printed
+	 */
+	public static void getIndentString(int indent) {
 	    for (int i = 0; i <= indent; i++) {
 	    	System.out.print('-');
 	    }
 	}
 	
-	private static void changeDirectory(Prompt prompt, Directory directory, String parameter) {
-		switch (parameter){
+	/**
+	 * This function is used to change current working directory
+	 * @param prompt Prompt object which defines the prompt sign in shell
+	 * @param parameter The part after cd command of entered string
+	 * @param directory Current working directory
+	 */
+	public static void changeDirectory(Prompt prompt, Directory directory, String parameter) {
 		
+		switch (parameter){
 		case CD_PARENT_COMMAND:
 			try {
 				if (directory.getDirectory().getCanonicalFile().getParent() != null) {
@@ -193,7 +194,7 @@ public class Shell {
 						prompt.setPromptSign(directory.getDirectory().getCanonicalPath());
 					}
 				} else {
-					System.out.println("You are in root folder of partition, there is no parent directory");
+					System.out.println("You are in root folder of partition, there is no parent directory to switch");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -203,7 +204,7 @@ public class Shell {
 		default:
 			try {
 				File directoryFromCommand = new File(directory.getDirectory().getCanonicalPath()+"\\"+parameter);
-				if (directoryFromCommand.exists() && directoryFromCommand.isDirectory()) {
+				if (directoryFromCommand.exists() && directoryFromCommand.isDirectory() && !parameter.matches("^\\.{3,}$")) {
 					directory.setDirectory(directoryFromCommand);
 					if (prompt.isPromptSetToShowDirectory()) {
 						prompt.setPromptSign(directoryFromCommand.getCanonicalPath());
