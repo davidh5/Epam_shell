@@ -27,7 +27,7 @@ public class Shell {
 		Scanner consoleReader = new Scanner(System.in);
 		
 		while (!(text.equals(EXIT_COMMAND))) {
-			System.out.print("[MyShell] "+prompt.getPromptSign()+"> ");
+			System.out.print("[MyShell] "+prompt.getPromptSign()+">");
 			text = consoleReader.nextLine();
 			commandParts = text.split(" ");
 			switch (commandParts[0]) {
