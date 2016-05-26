@@ -12,14 +12,18 @@ public class Shell {
 	private static final String DIR_COMMAND = "dir";
 	private static final String TREE_COMMAND = "tree";
 	private static final String CD_COMMAND = "cd";
+	private static final String CD_PARENT_COMMAND = "..";
 	private static final String PROMPT_COMMAND = "prompt";
 	private static final String PROMPT_RESET_COMMAND = "reset";
 	private static final String PROMPT_CWD_COMMAND = "$cwd";
 	private static final String PROMPT_DEFUALT_SIGN = "$";
+	
+//	private static File currentDirectory;
 
 	public static void main(String[] args) {
 		Prompt prompt = new Prompt("$");
-		File currentDirectory = new File(".");
+//		currentDirectory = new File(".");
+		Directory currentDirectory = new Directory(new File("."));
 		
 		
 		String text = "";
@@ -36,19 +40,24 @@ public class Shell {
 			switch (commandParts[0]) {
 			
 			case PROMPT_COMMAND:
-				if (commandParts.length == 1 || commandParts.length >2) {
-					System.out.println("'Prompt' command parameters are wrong");
-					break;
-				} else {
+				if (commandParts.length == 2) {
 					promptChange(prompt, commandParts[1], currentDirectory);
-					break;
+				} else if (commandParts.length > 2) {
+					String promptToSet = "";
+					for (int i = 1; i < commandParts.length; i++) {
+						promptToSet += commandParts[i]+" ";
+					}
+					promptChange(prompt, promptToSet, currentDirectory);
+				} else {
+					System.out.println("'Prompt' command should be run with some parameter");
 				}
+				break;
 			
 			case DIR_COMMAND:
 				if (commandParts.length != 1) {
 					System.out.println("'Dir' command should be run without any parameters");
 				} else {
-					showDirectoryContent(currentDirectory);
+					showDirectoryContent(currentDirectory.getDirectory());
 				}
 				break;
 				
@@ -57,20 +66,28 @@ public class Shell {
 					System.out.println("'Tree' command should be run without any parameters");
 				} else {
 					int indent = 0;
-					showDirectoryTree(currentDirectory, indent);
+					showDirectoryTree(currentDirectory.getDirectory(), indent);
 				}
 				break;
 				
 			case CD_COMMAND:
-				changeDirectory(currentDirectory, commandParts[1]);
+				if (commandParts.length > 2) {
+					String directoryToSwitch = "";
+					for (int i = 1; i < commandParts.length; i++) {
+						directoryToSwitch += commandParts[i]+" ";
+					}
+					changeDirectory(prompt, currentDirectory, directoryToSwitch);
+				} else if (commandParts.length == 2) {
+					changeDirectory(prompt, currentDirectory, commandParts[1]);
+				} else {
+					System.out.println("'CD' command should be run with some parameter");
+				}
 				break;
 				
 			case EXIT_COMMAND:
-				System.out.println("Shell is closing!");
+				System.out.println("Bye");
 				System.exit(0);
 				break;
-				
-			
 				
 			default:
 				System.out.println(commandParts[0]+" : unknown command");
@@ -85,23 +102,26 @@ public class Shell {
 	 * @param parameter Second part of typed command
 	 * @param directory Current working directory, it is used to show current directory path in prompt
 	 */
-	private static void promptChange(Prompt prompt, String parameter, File directory) {
+	private static void promptChange(Prompt prompt, String parameter, Directory directory) {
 		
 		switch (parameter) {
 		
 		case PROMPT_RESET_COMMAND:
+			prompt.setPromptSetToShowDirectory(false);
 			prompt.setPromptSign(PROMPT_DEFUALT_SIGN);
 			break;
 		
 		case PROMPT_CWD_COMMAND:
+			prompt.setPromptSetToShowDirectory(true);
 			try {
-				prompt.setPromptSign(directory.getCanonicalPath());
+				prompt.setPromptSign(directory.getDirectory().getCanonicalPath());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			break;
 		
 		default:
+			prompt.setPromptSetToShowDirectory(false);
 			prompt.setPromptSign(parameter);
 			break;
 		}
@@ -162,7 +182,39 @@ public class Shell {
 	    }
 	}
 	
-	private static void changeDirectory(File directory, String parameter) {
+	private static void changeDirectory(Prompt prompt, Directory directory, String parameter) {
+		switch (parameter){
 		
+		case CD_PARENT_COMMAND:
+			try {
+				if (directory.getDirectory().getCanonicalFile().getParent() != null) {
+					directory.setDirectory(new File(directory.getDirectory().getCanonicalFile().getParent()));
+					if (prompt.isPromptSetToShowDirectory()) {
+						prompt.setPromptSign(directory.getDirectory().getCanonicalPath());
+					}
+				} else {
+					System.out.println("You are in root folder of partition, there is no parent directory");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			break;
+			
+		default:
+			try {
+				File directoryFromCommand = new File(directory.getDirectory().getCanonicalPath()+"\\"+parameter);
+				if (directoryFromCommand.exists() && directoryFromCommand.isDirectory()) {
+					directory.setDirectory(directoryFromCommand);
+					if (prompt.isPromptSetToShowDirectory()) {
+						prompt.setPromptSign(directoryFromCommand.getCanonicalPath());
+					}
+				} else {
+					System.out.println("In current directory there is no " + parameter + " directory");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			break;
+		}
 	}
 }

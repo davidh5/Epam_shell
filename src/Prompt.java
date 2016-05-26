@@ -2,12 +2,28 @@
 public class Prompt {
 	
 	private String promptSign;
+	private boolean isPromptSetToShowDirectory;
 	
 	public Prompt(String promptSign) {
 		super();
+		isPromptSetToShowDirectory = false;
 		this.promptSign = promptSign;
 	}
 	
+	/**
+	 * @return the isPromptPath
+	 */
+	public boolean isPromptSetToShowDirectory() {
+		return isPromptSetToShowDirectory;
+	}
+
+	/**
+	 * @param isPromptSetToShowDirectory the isPromptPath to set
+	 */
+	public void setPromptSetToShowDirectory(boolean isPromptSetToShowDirectory) {
+		this.isPromptSetToShowDirectory = isPromptSetToShowDirectory;
+	}
+
 	/**
 	 * @return the promptSign
 	 */
